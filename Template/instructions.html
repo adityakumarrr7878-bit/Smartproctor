@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instructions — SmartProctor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav class="navbar">
+  <a href="{{ url_for('index') }}" class="home-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </a>
+  <div class="logo">Smart<span>Proctor</span></div>
+</nav>
+
+<div class="instr-wrap">
+  <div class="instr-card">
+    <h2>📋 Exam Instructions</h2>
+
+    <!-- Question count pills -->
+    <div class="info-row" style="margin-bottom:24px">
+      <div class="info-pill">Total: <span>{{ q_count }}</span></div>
+      <div class="info-pill">Duration: <span>{{ exam.duration }} min</span></div>
+      {% if type_counts.get('mcq', 0) > 0 %}
+      <div class="info-pill">Section A — MCQ: <span>{{ type_counts.get('mcq', 0) }}</span></div>
+      {% endif %}
+      {% if type_counts.get('short_answer', 0) > 0 %}
+      <div class="info-pill">Section B — Short Answer: <span>{{ type_counts.get('short_answer', 0) }}</span></div>
+      {% endif %}
+      {% if type_counts.get('long_answer', 0) > 0 %}
+      <div class="info-pill">Section C — Long Answer: <span>{{ type_counts.get('long_answer', 0) }}</span></div>
+      {% endif %}
+    </div>
+
+    <ul class="rule-list">
+      <li><div class="icon">1</div><span>Ensure your face is clearly visible to the camera at all times.</span></li>
+      <li><div class="icon">2</div><span>Do not switch tabs or minimize the browser window during the exam.</span></li>
+      <li><div class="icon">3</div><span>No other person should be visible in the camera frame.</span></li>
+      <li><div class="icon">4</div><span>No mobile phones, books, or electronic devices are allowed.</span></li>
+      <li><div class="icon">5</div><span>Right-click, copy, and paste are disabled during the exam.</span></li>
+      <li><div class="icon">6</div><span>Questions are divided into sections: MCQ → Short Answer → Long Answer.</span></li>
+      <li><div class="icon">7</div><span>The exam will auto-submit when the timer runs out.</span></li>
+      <li><div class="icon">8</div><span>All violations are recorded and visible to the administrator.</span></li>
+    </ul>
+
+    <div class="instr-footer">
+      <a href="{{ url_for('exam_page', exam_id=exam.id) }}" class="btn btn-primary" style="width:auto">
+        Start Exam →
+      </a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

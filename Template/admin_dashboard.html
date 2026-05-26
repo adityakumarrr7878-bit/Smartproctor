@@ -1,0 +1,22 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Admin Dashboard</title><link rel="stylesheet" href="{{ url_for('static',filename='css/style.css') }}"></head>
+<body>
+<nav class="navbar"><a href="{{ url_for('index') }}" class="home-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a><div class="logo">Smart<span>Proctor</span></div><a href="{{ url_for('admin_logout') }}" class="btn btn-secondary btn-sm">Logout</a></nav>
+<div class="dash-wrap">
+<div class="dash-header"><h1>Admin Dashboard</h1><a href="{{ url_for('create_exam') }}" class="btn btn-primary" style="width:auto">+ Create New Exam</a></div>
+{% if exams %}
+<table class="dash-table"><thead><tr><th>Title</th><th>Duration</th><th>Start Time</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+{% for e in exams %}<tr>
+<td>{{ e.title }}</td>
+<td>{{ e.duration }} min</td>
+<td>{{ e.start_time.strftime('%d %b %Y, %I:%M %p') }}</td>
+<td><span class="status-dot dot-{{ e.status }}"></span>{{ e.status|capitalize }}</td>
+<td style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+  <a href="{{ url_for('view_submissions',exam_id=e.id) }}" class="btn btn-secondary btn-sm">View Submissions</a>
+  <form method="POST" action="{{ url_for('delete_exam',exam_id=e.id) }}" onsubmit="return confirm('Delete this exam and all related data? This cannot be undone.')">
+    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+  </form>
+</td>
+</tr>{% endfor %}
+</tbody></table>
+{% else %}<div class="empty-state">No exams created yet.</div>{% endif %}
+</div></body></html>

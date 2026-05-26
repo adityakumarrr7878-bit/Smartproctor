@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ exam.title }} — SmartProctor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- Data for JavaScript -->
+<script type="application/json" id="exam-data">{{ exam | tojson }}</script>
+<script type="application/json" id="questions-data">{{ questions | tojson }}</script>
+<div id="roll-data" style="display:none">{{ roll }}</div>
+
+<div id="exam-container">
+  <nav class="navbar">
+    <div class="logo">Smart<span>Proctor</span></div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <span style="font-size:.82rem;color:var(--muted);font-family:var(--mono)">Roll: {{ roll }}</span>
+      <div class="timer" id="timer">--:--</div>
+    </div>
+  </nav>
+
+  <!-- Small banner for violation messages -->
+  <div class="violation-bar" id="violation-bar"></div>
+
+  <!-- Live violation counter strip (updated in real time) -->
+  <div id="live-violation-counts" style="
+    display:none;
+    background:rgba(247,92,92,0.1);
+    border-bottom:1px solid rgba(247,92,92,0.3);
+    color:#f75c5c;
+    font-size:.78rem;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:600;
+    padding:8px 48px;
+    text-align:center;
+    letter-spacing:.3px;
+  "></div>
+
+  <div class="exam-wrap">
+    <div class="q-header-row">
+      <span class="section-label" id="section-label"></span>
+      <span class="overall-counter" id="overall-counter"></span>
+    </div>
+    <p class="q-counter" id="q-counter"></p>
+
+    <div class="question-card">
+      <span class="q-type-badge badge-mcq" id="q-type-badge">☑ Multiple Choice</span>
+      <h3 id="q-text"></h3>
+
+      <!-- MCQ -->
+      <div id="mcq-section" style="display:none">
+        <div class="option-list">
+          {% for letter in ['A','B','C','D'] %}
+          <button class="option-btn" id="opt-{{ letter }}">
+            <div class="opt-letter">{{ letter }}</div>
+            <span class="opt-text"></span>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Short Answer -->
+      <div id="short-section" style="display:none">
+        <span class="input-label">Write your answer briefly (1–2 sentences):</span>
+        <input type="text" id="short-answer-input" class="short-input"
+               placeholder="Type your short answer here..." autocomplete="off">
+      </div>
+
+      <!-- Long Answer -->
+      <div id="long-section" style="display:none">
+        <span class="input-label">Write a detailed answer:</span>
+        <textarea id="long-answer-input" class="long-textarea"
+                  placeholder="Type your detailed answer here..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-nav">
+      <button id="btn-prev" class="btn btn-secondary">← Previous</button>
+      <div style="display:flex;gap:12px">
+        <button id="btn-next" class="btn btn-secondary">Next →</button>
+        <button id="btn-submit" class="btn btn-success" style="display:none">Submit Exam ✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Camera -->
+<div id="camera-box">
+  <video id="proctor-video" autoplay muted playsinline></video>
+  <div class="cam-label">🔴 Proctoring</div>
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script src="{{ url_for('static', filename='js/proctor.js') }}"></script>
+</body>
+</html>

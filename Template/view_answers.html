@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Answers — {{ submission.roll_number }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    /* ── Violation Report Card ────────────────────────────── */
+    .violation-report {
+      background: rgba(247,92,92,.07);
+      border: 1.5px solid rgba(247,92,92,.35);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+    .violation-report h2 {
+      font-size: 1rem; font-weight: 700; color: var(--danger);
+      margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+    }
+    .v-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+    }
+    .v-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .v-card.has-violation { border-color: rgba(247,92,92,.5); background: rgba(247,92,92,.06); }
+    .v-icon {
+      font-size: 1.6rem; flex-shrink: 0; line-height: 1;
+    }
+    .v-info .v-count {
+      font-size: 1.6rem; font-weight: 700; font-family: var(--mono);
+      line-height: 1;
+    }
+    .v-info .v-label {
+      font-size: .72rem; color: var(--muted); text-transform: uppercase;
+      letter-spacing: .5px; margin-top: 3px;
+    }
+    .v-card.has-violation .v-count { color: var(--danger); }
+    .v-card:not(.has-violation)    .v-count { color: var(--success); }
+    .no-violations {
+      font-size: .9rem; color: var(--success);
+      display: flex; align-items: center; gap: 8px; font-weight: 600;
+    }
+
+    /* ── Score bar ────────────────────────────────────────── */
+    .score-bar {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 28px; margin-bottom: 28px;
+      display: flex; flex-wrap: wrap; gap: 24px; align-items: center;
+    }
+    .score-item { text-align: center; }
+    .score-item .num { font-size: 1.8rem; font-weight: 700; font-family: var(--mono); }
+    .score-item .lbl { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+
+    /* ── Answer cards ─────────────────────────────────────── */
+    .answer-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; margin-bottom: 16px;
+    }
+    .answer-card .q-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+    .q-num {
+      width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: .78rem; font-weight: 700; color: #fff; margin-top: 2px;
+    }
+    .q-text-ans { font-size: .95rem; font-weight: 500; flex: 1; }
+    .type-pill {
+      font-size: .68rem; font-weight: 700; padding: 3px 10px;
+      border-radius: 99px; font-family: var(--mono); flex-shrink: 0; margin-top: 2px;
+    }
+    .pill-mcq   { background: rgba(79,142,247,.15);  color: var(--accent); }
+    .pill-short { background: rgba(45,212,191,.12);  color: var(--success); }
+    .pill-long  { background: rgba(124,92,247,.15);  color: var(--accent2); }
+
+    .options-review { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .opt-row {
+      display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+      border-radius: 8px; border: 1.5px solid var(--border); font-size: .88rem;
+    }
+    .opt-row.is-correct       { border-color: var(--success); background: rgba(45,212,191,.08); }
+    .opt-row.selected-wrong   { border-color: var(--danger);  background: rgba(247,92,92,.08); }
+    .opt-row.selected-correct { border-color: var(--success); background: rgba(45,212,191,.15); }
+    .opt-letter-sm {
+      width: 24px; height: 24px; border-radius: 5px; flex-shrink: 0;
+      background: var(--border); display: flex; align-items: center;
+      justify-content: center; font-size: .72rem; font-weight: 700;
+    }
+    .opt-row.is-correct .opt-letter-sm,
+    .opt-row.selected-correct .opt-letter-sm { background: var(--success); color: #000; }
+    .opt-row.selected-wrong .opt-letter-sm   { background: var(--danger);  color: #fff; }
+    .result-tag { font-size: .7rem; font-weight: 700; margin-left: auto; }
+    .tag-correct { color: var(--success); }
+    .tag-wrong   { color: var(--danger); }
+
+    .answer-text-box {
+      margin-top: 12px; background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 8px; padding: 14px 16px; font-size: .9rem;
+      line-height: 1.75; color: var(--text); white-space: pre-wrap; min-height: 48px;
+    }
+    .answer-text-box.empty { color: var(--muted); font-style: italic; }
+
+    .section-divider { margin: 28px 0 16px; display: flex; align-items: center; gap: 12px; }
+    .section-divider h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .8px; font-weight: 700; white-space: nowrap; }
+    .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .sd-mcq   h3 { color: var(--accent); }
+    .sd-short h3 { color: var(--success); }
+    .sd-long  h3 { color: var(--accent2); }
+
+    @media(max-width:640px){
+      .options-review { grid-template-columns: 1fr; }
+      .v-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="{{ url_for('view_submissions', exam_id=exam.id) }}" class="home-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    Submissions
+  </a>
+  <div class="logo">Smart<span>Proctor</span></div>
+</nav>
+
+<div class="dash-wrap">
+
+  <!-- Header -->
+  <div class="dash-header">
+    <div>
+      <h1>Answer Sheet</h1>
+      <p style="color:var(--muted);font-size:.9rem;margin-top:4px">
+        {{ exam.title }} &nbsp;·&nbsp;
+        Roll No: <strong>{{ submission.roll_number }}</strong> &nbsp;·&nbsp;
+        Submitted: {{ submission.submitted_at.strftime('%d %b %Y, %I:%M %p') if submission.submitted_at else 'N/A' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ══ VIOLATION REPORT ════════════════════════════════════ -->
+  {% set v = submission.violations or {} %}
+  {% set nf  = v.get('no_face', 0) %}
+  {% set mf  = v.get('multi_face', 0) %}
+  {% set obj = v.get('object_detected', 0) %}
+  {% set ts  = v.get('tab_switch', 0) %}
+  {% set total_violations = nf + mf + obj + ts %}
+
+  <div class="violation-report">
+    <h2>
+      🛡 Proctoring Violation Report
+      {% if total_violations == 0 %}
+        <span style="font-size:.8rem;font-weight:500;color:var(--success);margin-left:8px">— No violations recorded</span>
+      {% else %}
+        <span style="font-size:.8rem;font-weight:500;color:var(--danger);margin-left:8px">— {{ total_violations }} total violation{{ 's' if total_violations != 1 }}</span>
+      {% endif %}
+    </h2>
+
+    <div class="v-grid">
+      <!-- No Face -->
+      <div class="v-card {{ 'has-violation' if nf > 0 else '' }}">
+        <div class="v-icon">👤</div>
+        <div class="v-info">
+          <div class="v-count">{{ nf }}</div>
+          <div class="v-label">No Face Detected</div>
+        </div>
+      </div>
+
+      <!-- Multiple Faces -->
+      <div class="v-card {{ 'has-violation' if mf > 0 else '' }}">
+        <div class="v-icon">👥</div>
+        <div class="v-info">
+          <div class="v-count">{{ mf }}</div>
+          <div class="v-label">Multiple Faces</div>
+        </div>
+      </div>
+
+      <!-- Object Detected -->
+      <div class="v-card {{ 'has-violation' if obj > 0 else '' }}">
+        <div class="v-icon">📱</div>
+        <div class="v-info">
+          <div class="v-count">{{ obj }}</div>
+          <div class="v-label">Restricted Object</div>
+        </div>
+      </div>
+
+      <!-- Tab Switch -->
+      <div class="v-card {{ 'has-violation' if ts > 0 else '' }}">
+        <div class="v-icon">🔀</div>
+        <div class="v-info">
+          <div class="v-count">{{ ts }}</div>
+          <div class="v-label">Tab Switches</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCORE SUMMARY ══════════════════════════════════════ -->
+  {% set answers = submission.answers %}
+  {% set correct_c = namespace(v=0) %}
+  {% set wrong_c   = namespace(v=0) %}
+  {% set skip_c    = namespace(v=0) %}
+  {% set short_c   = namespace(v=0) %}
+  {% set long_c    = namespace(v=0) %}
+  {% for q in questions %}
+    {% set qid = q.id | string %}
+    {% if q.question_type == 'short_answer' %}
+      {% set short_c.v = short_c.v + 1 %}
+    {% elif q.question_type == 'long_answer' %}
+      {% set long_c.v = long_c.v + 1 %}
+    {% elif answers.get(qid) %}
+      {% if answers.get(qid) == q.correct_answer %}
+        {% set correct_c.v = correct_c.v + 1 %}
+      {% else %}
+        {% set wrong_c.v = wrong_c.v + 1 %}
+      {% endif %}
+    {% else %}
+      {% set skip_c.v = skip_c.v + 1 %}
+    {% endif %}
+  {% endfor %}
+
+  <div class="score-bar">
+    <div class="score-item">
+      <div class="num">{{ questions | length }}</div>
+      <div class="lbl">Total Qs</div>
+    </div>
+    <div class="score-item">
+      <div class="num" style="color:var(--success)">{{ correct_c.v }}</div>
+      <div class="lbl">MCQ Correct</div>
+    </div>
+    <div class="score-item">
+      <div class="num" style="color:var(--danger)">{{ wrong_c.v }}</div>
+      <div class="lbl">MCQ Wrong</div>
+    </div>
+    <div class="score-item">
+      <div class="num" style="color:var(--muted)">{{ skip_c.v }}</div>
+      <div class="lbl">MCQ Skipped</div>
+    </div>
+    {% if short_c.v > 0 %}
+    <div class="score-item">
+      <div class="num" style="color:var(--success)">{{ short_c.v }}</div>
+      <div class="lbl">Short Ans</div>
+    </div>
+    {% endif %}
+    {% if long_c.v > 0 %}
+    <div class="score-item">
+      <div class="num" style="color:var(--accent2)">{{ long_c.v }}</div>
+      <div class="lbl">Long Ans</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ══ SECTION A: MCQ ════════════════════════════════════ -->
+  {% set mcq_qs = questions | selectattr('question_type','equalto','mcq') | list %}
+  {% if mcq_qs %}
+  <div class="section-divider sd-mcq"><h3>Section A — Multiple Choice Questions</h3></div>
+  {% for q in mcq_qs %}
+  {% set qid   = q.id | string %}
+  {% set given = answers.get(qid, '') %}
+  <div class="answer-card">
+    <div class="q-header">
+      <div class="q-num">{{ loop.index }}</div>
+      <div class="q-text-ans">{{ q.question_text }}</div>
+      <span class="type-pill pill-mcq">MCQ</span>
+    </div>
+    <div class="options-review">
+      {% for letter, opt_key in [('A','option_a'),('B','option_b'),('C','option_c'),('D','option_d')] %}
+      {% set is_correct  = (letter == q.correct_answer) %}
+      {% set is_selected = (letter == given) %}
+      <div class="opt-row
+        {% if is_selected and is_correct %}selected-correct
+        {% elif is_selected %}selected-wrong
+        {% elif is_correct %}is-correct
+        {% endif %}">
+        <div class="opt-letter-sm">{{ letter }}</div>
+        <span>{{ q[opt_key] or '' }}</span>
+        {% if is_selected and is_correct %}
+          <span class="result-tag tag-correct" style="margin-left:auto">✓ Correct</span>
+        {% elif is_selected %}
+          <span class="result-tag tag-wrong" style="margin-left:auto">✗ Wrong</span>
+        {% elif is_correct %}
+          <span class="result-tag tag-correct" style="margin-left:auto">✓ Answer</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% if not given %}
+    <p style="margin-top:10px;font-size:.82rem;color:var(--muted);font-style:italic">— Not attempted</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <!-- ══ SECTION B: SHORT ANSWER ═══════════════════════════ -->
+  {% set short_qs = questions | selectattr('question_type','equalto','short_answer') | list %}
+  {% if short_qs %}
+  <div class="section-divider sd-short"><h3>Section B — Short Answer Questions</h3></div>
+  {% for q in short_qs %}
+  {% set qid   = q.id | string %}
+  {% set given = answers.get(qid, '') %}
+  <div class="answer-card">
+    <div class="q-header">
+      <div class="q-num">{{ loop.index }}</div>
+      <div class="q-text-ans">{{ q.question_text }}</div>
+      <span class="type-pill pill-short">Short Answer</span>
+    </div>
+    {% if given %}
+    <div class="answer-text-box">{{ given }}</div>
+    {% else %}
+    <div class="answer-text-box empty">— No answer provided</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <!-- ══ SECTION C: LONG ANSWER ════════════════════════════ -->
+  {% set long_qs = questions | selectattr('question_type','equalto','long_answer') | list %}
+  {% if long_qs %}
+  <div class="section-divider sd-long"><h3>Section C — Long Answer Questions</h3></div>
+  {% for q in long_qs %}
+  {% set qid   = q.id | string %}
+  {% set given = answers.get(qid, '') %}
+  <div class="answer-card">
+    <div class="q-header">
+      <div class="q-num">{{ loop.index }}</div>
+      <div class="q-text-ans">{{ q.question_text }}</div>
+      <span class="type-pill pill-long">Long Answer</span>
+    </div>
+    {% if given %}
+    <div class="answer-text-box">{{ given }}</div>
+    {% else %}
+    <div class="answer-text-box empty">— No answer provided</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% endif %}
+
+</div>
+</body>
+</html>

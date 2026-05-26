@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Exam — SmartProctor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav class="navbar">
+  <a href="{{ url_for('admin_dashboard') }}" class="home-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Dashboard
+  </a>
+  <div class="logo">Smart<span>Proctor</span></div>
+</nav>
+
+<div class="create-wrap">
+  <h1>Create New Exam</h1>
+
+  <form method="POST" id="exam-form">
+    <div class="form-group">
+      <label>Exam Title</label>
+      <input type="text" name="title" required placeholder="e.g. Mathematics Mid-Term">
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea name="description" placeholder="Brief description of the exam..."></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+      <div class="form-group">
+        <label>Duration (minutes)</label>
+        <input type="number" name="duration" required min="1" placeholder="60">
+      </div>
+      <div class="form-group">
+        <label>Start Time</label>
+        <input type="datetime-local" name="start_time" required>
+      </div>
+      <div class="form-group">
+        <label>End Time</label>
+        <input type="datetime-local" name="end_time" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Allowed Roll Numbers (comma separated)</label>
+      <input type="text" name="allowed_rolls" placeholder="e.g. 101, 102, 103">
+    </div>
+
+    <hr style="border-color:var(--border);margin:32px 0">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h3 style="font-size:1rem;font-weight:600">Questions</h3>
+      <span id="q-count" style="font-family:var(--mono);font-size:.82rem;color:var(--muted)">0 questions</span>
+    </div>
+
+    <div id="questions-container"></div>
+
+    <button type="button" class="add-q-btn" onclick="addQuestion()">+ Add Question</button>
+
+    <div style="margin-top:32px;display:flex;justify-content:flex-end;gap:12px">
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary" style="width:auto">Create Exam</button>
+    </div>
+  </form>
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script>
+const _origAdd = addQuestion;
+window.addQuestion = function() {
+  _origAdd();
+  const count = document.querySelectorAll('.question-block').length;
+  document.getElementById('q-count').textContent = count + ' question' + (count !== 1 ? 's' : '');
+};
+addQuestion();
+</script>
+</body>
+</html>

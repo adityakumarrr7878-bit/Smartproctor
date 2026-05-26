@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartProctor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">
+    <div class="logo-icon">🎓</div>
+    Smart<span>Proctor</span>
+  </div>
+  <a href="{{ url_for('admin_login') }}" class="btn-admin">Admin Login</a>
+</nav>
+
+<div class="hero">
+  <p>             </p>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <h2>Ongoing Exams</h2>
+    <span class="badge badge-ongoing">Live</span>
+  </div>
+  {% if ongoing %}
+  <div class="exam-grid">
+    {% for e in ongoing %}
+    <a href="{{ url_for('exam_detail', exam_id=e.id) }}" class="exam-card">
+      <h3>{{ e.title }}</h3>
+      <p>{{ (e.description or '')[:80] }}{% if (e.description or '')|length > 80 %}...{% endif %}</p>
+      <div class="meta">
+        <span>⏱ {{ e.duration }} min</span>
+        <span>🕐 Ends {{ e.end_time.strftime('%I:%M %p') }}</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">No ongoing exams at the moment.</div>
+  {% endif %}
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <h2>Upcoming Exams</h2>
+    <span class="badge badge-upcoming">Soon</span>
+  </div>
+  {% if upcoming %}
+  <div class="exam-grid">
+    {% for e in upcoming %}
+    <a href="{{ url_for('exam_detail', exam_id=e.id) }}" class="exam-card">
+      <h3>{{ e.title }}</h3>
+      <p>{{ (e.description or '')[:80] }}{% if (e.description or '')|length > 80 %}...{% endif %}</p>
+      <div class="meta">
+        <span>📅 {{ e.start_time.strftime('%d %b, %I:%M %p') }}</span>
+        <span>⏱ {{ e.duration }} min</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">No upcoming exams scheduled.</div>
+  {% endif %}
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <h2>Completed Exams</h2>
+    <span class="badge badge-completed">Ended</span>
+  </div>
+  {% if completed %}
+  <div class="exam-grid">
+    {% for e in completed %}
+    <a href="{{ url_for('exam_detail', exam_id=e.id) }}" class="exam-card" style="opacity:.65">
+      <h3>{{ e.title }}</h3>
+      <p>{{ (e.description or '')[:80] }}{% if (e.description or '')|length > 80 %}...{% endif %}</p>
+      <div class="meta">
+        <span>✅ Ended {{ e.end_time.strftime('%d %b, %Y') }}</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">No completed exams yet.</div>
+  {% endif %}
+</div>
+
+</body>
+</html>
