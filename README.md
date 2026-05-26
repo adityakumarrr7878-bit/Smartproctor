@@ -1,6 +1,9 @@
 # Smartproctor
 This is our project  SMARTPROCTOR  it is a online examination monitoring system.
 
+
+Feature of smartproctor are
+
 1️.Exam Status Logic
 Purpose:
 The Exam Status Logic controls the current state of an examination and decides whether students can access the exam or not
